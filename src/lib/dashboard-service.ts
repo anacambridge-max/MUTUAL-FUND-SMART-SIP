@@ -32,9 +32,9 @@ const TRACKED: TrackedIndex[] = [
   { key: "NIFTY_50", name: "NIFTY 50", aliases: ["NIFTY 50", "NIFTY50"], isSector: false },
   { key: "SENSEX", name: "SENSEX", aliases: ["S&P BSE SENSEX", "SENSEX"], isSector: false },
   { key: "MIDCAP_150", name: "NIFTY Midcap 150", aliases: ["NIFTY MIDCAP 150", "NIFTY MIDCAP150"], isSector: false },
-  { key: "SMALLCAP_250", name: "NIFTY Smallcap 250", aliases: ["NIFTY SMALLCAP 250", "NIFTY SMALLCAP250"], isSector: false },
+  { key: "SMALLCAP_250", name: "NIFTY Smallcap 250", aliases: ["NIFTY SMALLCAP 250", "NIFTY SMLCAP 250", "NIFTY SMALLCAP250"], isSector: false },
   { key: "NIFTY_NEXT_50", name: "NIFTY Next 50", aliases: ["NIFTY NEXT 50", "NIFTY NEXT50"], isSector: false },
-  { key: "LARGEMIDCAP_250", name: "NIFTY LargeMidcap 250", aliases: ["NIFTY LARGEMIDCAP 250"], isSector: false },
+  { key: "LARGEMIDCAP_250", name: "NIFTY LargeMidcap 250", aliases: ["NIFTY LARGEMIDCAP 250", "NIFTY LARGEMIDCAP250"], isSector: false },
   { key: "BANK_NIFTY", name: "NIFTY Bank", aliases: ["NIFTY BANK", "BANKNIFTY"], isSector: true },
   { key: "NIFTY_IT", name: "NIFTY IT", aliases: ["NIFTY IT"], isSector: true },
   { key: "NIFTY_AUTO", name: "NIFTY Auto", aliases: ["NIFTY AUTO"], isSector: true },
@@ -42,33 +42,33 @@ const TRACKED: TrackedIndex[] = [
   { key: "NIFTY_FMCG", name: "NIFTY FMCG", aliases: ["NIFTY FMCG"], isSector: true },
   { key: "NIFTY_METAL", name: "NIFTY Metal", aliases: ["NIFTY METAL"], isSector: true },
   { key: "NIFTY_REALTY", name: "NIFTY Realty", aliases: ["NIFTY REALTY"], isSector: true },
-  { key: "NIFTY_FIN_SERVICE", name: "NIFTY Financial Services", aliases: ["NIFTY FINANCIAL SERVICES", "NIFTY FIN SERVICE"], isSector: true },
+  { key: "NIFTY_FIN_SERVICE", name: "NIFTY Financial Services", aliases: ["NIFTY FINANCIAL SERVICES", "NIFTY FINANCIAL SERVICES 25/50", "NIFTY FIN SERVICE"], isSector: true },
   { key: "NIFTY_ENERGY", name: "NIFTY Energy", aliases: ["NIFTY ENERGY"], isSector: true },
   { key: "NIFTY_PSU_BANK", name: "NIFTY PSU Bank", aliases: ["NIFTY PSU BANK"], isSector: true },
   { key: "NIFTY_INFRA", name: "NIFTY Infrastructure", aliases: ["NIFTY INFRASTRUCTURE"], isSector: true },
-  { key: "NIFTY_SERVICES", name: "NIFTY Services Sector", aliases: ["NIFTY SERVICES SECTOR"], isSector: true },
+  { key: "NIFTY_SERVICES", name: "NIFTY Services Sector", aliases: ["NIFTY SERVICES SECTOR", "NIFTY SERV SECTOR"], isSector: true },
   { key: "GOLD_PROXY", name: "Gold Proxy", aliases: ["GOLD"], isSector: false },
 ];
 
-const YAHOO_SYMBOLS: Record<string, string> = {
-  NIFTY_50: "%5ENSEI",
-  SENSEX: "%5EBSESN",
-  MIDCAP_150: "NIFTYMIDCAP150.NS",
-  SMALLCAP_250: "NIFTYSMLCAP250.NS",
-  NIFTY_NEXT_50: "NIFTYNXT50.NS",
-  LARGEMIDCAP_250: "NIFTY_LARGEMID250.NS",
-  BANK_NIFTY: "%5ENSEBANK",
-  NIFTY_IT: "%5ECNXIT",
-  NIFTY_AUTO: "%5ECNXAUTO",
-  NIFTY_PHARMA: "%5ECNXPHARMA",
-  NIFTY_FMCG: "%5ECNXFMCG",
-  NIFTY_METAL: "%5ECNXMETAL",
-  NIFTY_REALTY: "%5ECNXREALTY",
-  NIFTY_FIN_SERVICE: "NIFTYFINSERVICE.NS",
-  NIFTY_ENERGY: "NIFTYENERGY.NS",
-  NIFTY_PSU_BANK: "NIFTYPSUBANK.NS",
-  NIFTY_INFRA: "NIFTYINFRA.NS",
-  NIFTY_SERVICES: "NIFTYSERVICES.NS",
+const YAHOO_SYMBOLS: Record<string, string[]> = {
+  NIFTY_50: ["%5ENSEI", "^NSEI"],
+  SENSEX: ["%5EBSESN", "^BSESN"],
+  MIDCAP_150: ["NIFTYMIDCAP150.NS"],
+  SMALLCAP_250: ["NIFTYSMLCAP250.NS"],
+  NIFTY_NEXT_50: ["%5ENSMIDCP", "^NSMIDCP", "NIFTYNXT50.NS"],
+  LARGEMIDCAP_250: ["NIFTY_LARGEMID250.NS"],
+  BANK_NIFTY: ["%5ENSEBANK", "^NSEBANK"],
+  NIFTY_IT: ["%5ECNXIT", "^CNXIT"],
+  NIFTY_AUTO: ["%5ECNXAUTO", "^CNXAUTO"],
+  NIFTY_PHARMA: ["%5ECNXPHARMA", "^CNXPHARMA"],
+  NIFTY_FMCG: ["%5ECNXFMCG", "^CNXFMCG"],
+  NIFTY_METAL: ["%5ECNXMETAL", "^CNXMETAL"],
+  NIFTY_REALTY: ["%5ECNXREALTY", "^CNXREALTY"],
+  NIFTY_FIN_SERVICE: ["%5ECNXFIN", "^CNXFIN", "NIFTYFINSERVICE.NS"],
+  NIFTY_ENERGY: ["%5ECNXENERGY", "^CNXENERGY", "NIFTYENERGY.NS"],
+  NIFTY_PSU_BANK: ["%5ECNXPSUBANK", "^CNXPSUBANK", "NIFTYPSUBANK.NS"],
+  NIFTY_INFRA: ["%5ECNXINFRA", "^CNXINFRA", "NIFTYINFRA.NS"],
+  NIFTY_SERVICES: ["%5ECNXSERVICE", "^CNXSERVICE", "NIFTYSERVICES.NS"],
 };
 
 let runtimeSettings: DashboardSettings = {
@@ -93,8 +93,6 @@ function trend(move: number | null): TrendState {
 
 function validMove(move: number | null, isSector: boolean): number | null {
   if (move === null || !Number.isFinite(move)) return null;
-  // A single corrupted feed value must never create a false tactical signal.
-  // Sector indices are rejected above +/-5%; broad indices above +/-8%.
   const limit = isSector ? 5 : 8;
   return Math.abs(move) <= limit ? move : null;
 }
@@ -161,55 +159,75 @@ function executionWindow() {
 
 async function fetchYahoo(): Promise<{ quotes: IndexQuote[]; warning?: string }> {
   const warnings: string[] = [];
+  const clock = executionWindow();
   const results = await Promise.all(
     TRACKED.map(async (item) => {
-      const symbol = YAHOO_SYMBOLS[item.key];
-      if (!symbol) return emptyQuote(item);
-      try {
-        const response = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?range=1y&interval=1d`, {
-          cache: "no-store",
-          headers: { accept: "application/json" },
-        });
-        if (!response.ok) return emptyQuote(item);
-        const json = (await response.json()) as YahooChart;
-        const result = json.chart?.result?.[0];
-        const rawCloses = result?.indicators?.quote?.[0]?.close ?? [];
-        const closes = rawCloses.filter((value): value is number => typeof value === "number" && Number.isFinite(value));
-        if (!result || closes.length === 0) return emptyQuote(item);
+      const symbols = YAHOO_SYMBOLS[item.key] ?? [];
+      for (const symbol of symbols) {
+        try {
+          const encoded = symbol.startsWith("%") ? symbol : encodeURIComponent(symbol);
+          const response = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${encoded}?range=1y&interval=1d`, {
+            cache: "no-store",
+            headers: { accept: "application/json" },
+          });
+          if (!response.ok) continue;
+          const json = (await response.json()) as YahooChart;
+          const result = json.chart?.result?.[0];
+          const rawCloses = result?.indicators?.quote?.[0]?.close ?? [];
+          const closes = rawCloses.filter((value): value is number => typeof value === "number" && Number.isFinite(value));
+          if (!result || closes.length < 2) continue;
 
-        const value = num(result.meta?.regularMarketPrice) ?? closes[closes.length - 1] ?? null;
-        const previous = num(result.meta?.previousClose) ?? (closes.length > 1 ? closes[closes.length - 2] : null);
-        const rawMove = value !== null && previous !== null && previous !== 0 ? ((value - previous) / previous) * 100 : null;
-        const changePct = validMove(rawMove, item.isSector);
-        if (rawMove !== null && changePct === null) warnings.push(`${item.name} rejected abnormal move ${rawMove.toFixed(2)}%`);
-        const returnOver = (days: number): number | null => {
-          if (closes.length <= days) return null;
-          const base = closes[closes.length - days - 1];
-          return base ? ((closes[closes.length - 1] / base) - 1) * 100 : null;
-        };
-        const average = (days: number): number | null => {
-          if (closes.length < days) return null;
-          return closes.slice(-days).reduce((sum, close) => sum + close, 0) / days;
-        };
-        return {
-          key: item.key,
-          name: item.name,
-          value,
-          change: value !== null && previous !== null ? value - previous : null,
-          changePct,
-          fiveDayPct: returnOver(5),
-          oneMonthPct: returnOver(21),
-          threeMonthPct: returnOver(63),
-          fiftyTwoWeekPct: returnOver(252),
-          sma20: average(20),
-          sma50: average(50),
-          sma200: average(200),
-          trend: trend(changePct),
-          isSector: item.isSector,
-        } satisfies IndexQuote;
-      } catch {
-        return emptyQuote(item);
+          // When the Indian market is closed, Yahoo's regularMarketPrice can be stale
+          // or represent a non-closing snapshot. Use the last completed daily close.
+          // During market hours, prefer the live regularMarketPrice.
+          const value = clock.open
+            ? num(result.meta?.regularMarketPrice) ?? closes[closes.length - 1]
+            : closes[closes.length - 1];
+          const previous = clock.open
+            ? num(result.meta?.previousClose) ?? closes[closes.length - 2]
+            : closes[closes.length - 2];
+          const rawMove = value !== null && previous !== null && previous !== 0 ? ((value - previous) / previous) * 100 : null;
+          const changePct = validMove(rawMove, item.isSector);
+
+          if (rawMove !== null && changePct === null) {
+            warnings.push(`${item.name} rejected abnormal move ${rawMove.toFixed(2)}%`);
+            // Do not accept a suspicious live quote just because the endpoint responded.
+            // Try the next symbol alias before giving up.
+            continue;
+          }
+
+          const returnOver = (days: number): number | null => {
+            if (closes.length <= days) return null;
+            const base = closes[closes.length - days - 1];
+            return base ? ((closes[closes.length - 1] / base) - 1) * 100 : null;
+          };
+          const average = (days: number): number | null => {
+            if (closes.length < days) return null;
+            return closes.slice(-days).reduce((sum, close) => sum + close, 0) / days;
+          };
+
+          return {
+            key: item.key,
+            name: item.name,
+            value,
+            change: value !== null && previous !== null ? value - previous : null,
+            changePct,
+            fiveDayPct: returnOver(5),
+            oneMonthPct: returnOver(21),
+            threeMonthPct: returnOver(63),
+            fiftyTwoWeekPct: returnOver(252),
+            sma20: average(20),
+            sma50: average(50),
+            sma200: average(200),
+            trend: trend(changePct),
+            isSector: item.isSector,
+          } satisfies IndexQuote;
+        } catch {
+          // Try the next verified Yahoo symbol alias.
+        }
       }
+      warnings.push(`${item.name} unavailable from validated Yahoo symbols`);
+      return emptyQuote(item);
     }),
   );
   return {
@@ -368,7 +386,7 @@ function scoreFunds(indices: IndexQuote[], funds: FundMapping[], navs: Map<strin
       confidence,
       reason: move === null
         ? `${proxyDefinition?.label ?? fund.proxyKey} market data is not currently verified.`
-        : `${proxyDefinition?.label ?? fund.proxyKey} moved ${move >= 0 ? "+" : ""}${move.toFixed(2)}% today. Modelled fund impact uses ${Math.round(sensitivity * 100)}% proxy sensitivity.` ,
+        : `${proxyDefinition?.label ?? fund.proxyKey} moved ${move >= 0 ? "+" : ""}${move.toFixed(2)}% today. Modelled fund impact uses ${Math.round(sensitivity * 100)}% proxy sensitivity.`,
       expectedNavImpactNote: nav
         ? `Latest published NAV ₹${nav.nav.toFixed(4)} • ${nav.date} • modelled closing NAV ₹${estimatedNav?.toFixed(4) ?? "—"}.`
         : "NAV unavailable from the AMFI daily feed; tactical signal suppressed.",
@@ -421,16 +439,20 @@ async function buildLiveSnapshot(): Promise<DashboardSnapshot> {
   const navs = navResult.navs;
   const scored = scoreFunds(market.quotes, runtimeSettings.fundMappings, navs);
   const sectors = market.quotes.filter((item) => item.isSector && item.changePct !== null);
+  const totalSectors = market.quotes.filter((item) => item.isSector).length;
+  const sectorCoverage = totalSectors ? sectors.length / totalSectors : 0;
   const falling = [...sectors].filter((item) => (item.changePct as number) < 0).sort((a, b) => (a.changePct as number) - (b.changePct as number)).slice(0, 5);
   const strongest = [...sectors].filter((item) => (item.changePct as number) > 0).sort((a, b) => (b.changePct as number) - (a.changePct as number)).slice(0, 5);
   const positive = sectors.filter((item) => (item.changePct as number) > 0).length;
   const breadth = sectors.length ? (positive / sectors.length) * 100 : 0;
   const average = sectors.length ? sectors.reduce((sum, item) => sum + (item.changePct as number), 0) / sectors.length : 0;
-  const riskOn = sectors.length > 0 && breadth >= 55 && average >= 0;
+  const riskOn = sectorCoverage >= 0.80 && breadth >= 55 && average >= 0;
   const clock = executionWindow();
   const warnings = [market.warning, navResult.warning].filter((warning): warning is string => Boolean(warning));
+  if (sectorCoverage < 0.80) warnings.push(`Sector coverage incomplete: ${sectors.length}/${totalSectors} sector indices verified; risk regime is suppressed until coverage improves.`);
   if (navs.size < runtimeSettings.fundMappings.length) warnings.push(`AMFI returned verified NAVs for ${navs.size} of ${runtimeSettings.fundMappings.length} configured funds.`);
   const lowerNav = scored.filter((fund) => fund.technical.navOpportunityScore > 0 && fund.actionTag !== "WAIT" && fund.actionTag !== "AVOID TODAY").sort((a, b) => b.technical.navOpportunityScore - a.technical.navOpportunityScore);
+  const dataComplete = market.quotes.filter((item) => !item.isSector && item.changePct !== null).length >= 4 && sectorCoverage >= 0.80;
 
   return {
     generatedAt: new Date().toISOString(),
@@ -439,8 +461,12 @@ async function buildLiveSnapshot(): Promise<DashboardSnapshot> {
     settings: runtimeSettings,
     regime: {
       badge: riskOn ? "RISK_ON" : "RISK_OFF",
-      label: riskOn ? "🟢 RISK ON" : "🔴 RISK OFF",
-      strategyNote: riskOn ? "Maintain core SIP and selectively add on meaningful corrections." : "Core SIP can continue; focus tactical buying on healthy corrections and avoid chasing strength.",
+      label: riskOn ? "🟢 RISK ON" : dataComplete ? "🟡 RISK NEUTRAL" : "🟠 DATA COVERAGE INCOMPLETE",
+      strategyNote: riskOn
+        ? "Maintain core SIP and selectively add on meaningful corrections."
+        : dataComplete
+          ? "Core SIP can continue; focus tactical buying on healthy corrections and avoid chasing strength."
+          : "Do not rely on the risk regime yet; missing sector data is excluded from breadth until verified.",
       breadthPositivePct: breadth,
     },
     headlineIndices: market.quotes.filter((item) => ["NIFTY_50", "SENSEX", "MIDCAP_150", "SMALLCAP_250", "NIFTY_NEXT_50", "BANK_NIFTY", "NIFTY_IT", "NIFTY_PHARMA"].includes(item.key)),
