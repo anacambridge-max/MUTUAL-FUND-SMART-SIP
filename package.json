@@ -2,7 +2,7 @@
   "name": "mutual-fund-smart-sip",
   "private": true,
   "engines": {
-    "node": ">=20.9.0"
+    "node": "22.x"
   },
   "scripts": {
     "dev": "next dev",
