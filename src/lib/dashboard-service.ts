@@ -17,7 +17,7 @@ const FALLBACK_MOVES: Record<string, number> = { NIFTY_50:-0.46,SENSEX:-0.38,MID
 const FALLBACK_VALUES: Record<string, number> = { NIFTY_50:24471.7,MIDCAP_150:23459.8,SMALLCAP_250:18381.85 };
 const headers = { "user-agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/126 Safari/537.36", accept:"application/json,text/plain,*/*", referer:"https://www.nseindia.com/" };
 let runtimeSettings: DashboardSettings = { ...DEFAULT_SETTINGS, fundMappings:[...DEFAULT_FUND_MAPPINGS], proxyDefinitions:[...DEFAULT_PROXY_DEFINITIONS] };
-const num = (v: unknown): number | null => { if(typeof v === "number" && Number.isFinite(v)) return v; if(typeof v === "string"){const x=Number(v.replaceAll(",","").trim()); return Number.isFinite(x)?x:null;} return null; };
+const num = (v: unknown): number | null => { if(typeof v === "number" && Number.isFinite(v)) return v; if(typeof v === "string"){const x=Number(v.replace(/,/g, "").trim()); return Number.isFinite(x)?x:null;} return null; };
 const trend = (move:number|null):TrendState => move===null?"SIDEWAYS":move>=0.45?"UP":move<=-0.70?"DOWN":"SIDEWAYS";
 
 function cutoff(){ const now=new Date(); const ist=new Date(now.toLocaleString("en-US",{timeZone:"Asia/Kolkata"})); const start=new Date(ist);start.setHours(9,15,0,0);const end=new Date(ist);end.setHours(15,0,0,0);const total=Math.max(end.getTime()-start.getTime(),1);const progress=Math.min(Math.max((ist.getTime()-start.getTime())/total*100,0),100);const rem=Math.max(end.getTime()-ist.getTime(),0);const h=Math.floor(rem/3600000),m=Math.floor((rem%3600000)/60000);return{cutoffProgressPct:progress,cutoffLabel:rem?`Time to 3:00 PM cut-off: ${h}h ${m}m`:"3:00 PM cut-off window has passed for today"}; }
