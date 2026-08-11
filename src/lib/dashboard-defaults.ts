@@ -28,7 +28,7 @@ export const DEFAULT_FUND_MAPPINGS: FundMapping[] = [
   { id: "uti-gold", name: "UTI Gold ETF FoF", proxyKey: "GOLD_PROXY", amfiSearchTerm: "UTI Gold" },
   { id: "sbi-small-cap", name: "SBI Small Cap Fund", proxyKey: "SMALLCAP_250", amfiSearchTerm: "SBI Small Cap" },
   { id: "hdfc-mid-cap", name: "HDFC Mid-Cap Opportunities Fund", proxyKey: "MIDCAP_150", amfiSearchTerm: "HDFC Mid" },
-  { id: "quant-large-mid", name: "Quant Large and Mid Cap Fund", proxyKey: "LARGEMIDCAP_250", amfiSearchTerm: "Quant Large and Mid" },
+  { id: "quant-large-mid", name: "Quant Large and Mid Cap Fund", proxyKey: "LARGEMIDCAP_250", amfiCode: "120826", amfiSearchTerm: "Quant Large and Mid" },
   { id: "tata-digital", name: "Tata Digital India Fund", proxyKey: "NIFTY_IT", amfiSearchTerm: "Tata Digital India" },
   { id: "sbi-healthcare", name: "SBI Healthcare Opportunities Fund", proxyKey: "NIFTY_PHARMA", amfiSearchTerm: "SBI Healthcare" },
   { id: "quant-bfsi", name: "Quant BFSI Fund", proxyKey: "NIFTY_FIN_SERVICE", amfiSearchTerm: "Quant BFSI" },
@@ -39,17 +39,17 @@ export const DEFAULT_FUND_MAPPINGS: FundMapping[] = [
   { id: "icici-bluechip", name: "ICICI Prudential Bluechip Fund", proxyKey: "NIFTY_50", amfiSearchTerm: "ICICI Prudential Bluechip" },
   { id: "parag-flexi", name: "Parag Parikh Flexi Cap Fund", proxyKey: "NIFTY_50", amfiSearchTerm: "Parag Parikh Flexi" },
   { id: "mirae-large-cap", name: "Mirae Asset Large Cap Fund", proxyKey: "NIFTY_50", amfiSearchTerm: "Mirae Asset Large Cap" },
-  { id: "kotak-emerging", name: "Kotak Emerging Equity Fund", proxyKey: "MIDCAP_150", amfiSearchTerm: "Kotak Emerging" },
+  { id: "kotak-emerging", name: "Kotak Emerging Equity Fund", proxyKey: "MIDCAP_150", amfiCode: "119775", amfiSearchTerm: "Kotak Emerging Equity" },
   { id: "dsp-midcap", name: "DSP Midcap Fund", proxyKey: "MIDCAP_150", amfiSearchTerm: "DSP Midcap" },
   { id: "hdfc-flexi", name: "HDFC Flexi Cap Fund", proxyKey: "NIFTY_50", amfiSearchTerm: "HDFC Flexi" },
 ];
 
 export const DASHBOARD_DISCLAIMERS: string[] = [
   "This dashboard provides probability-based decision signals, not investment advice or a guaranteed NAV prediction.",
-  "Today's market weakness is likely to be reflected in the fund's closing NAV.",
-  "Applicable NAV depends on the applicable cut-off and funds-realisation conditions per AMFI/SEBI rules.",
-  "Sector/proxy mapping is an approximation and not a substitute for the fund's actual portfolio holdings.",
-  "Free/unofficial data sources may be delayed, incomplete, or temporarily unavailable.",
+  "Today's market weakness can be reflected in a fund's closing NAV, but the actual applicable NAV depends on the scheme, cut-off and funds-realisation rules.",
+  "A same-day purchase before 3:00 PM is not by itself a guarantee of same-day NAV; applicable rules and funds realisation must be satisfied.",
+  "Sector/proxy mapping is an approximation and is not a substitute for the fund's actual portfolio holdings.",
+  "If market or NAV data fails validation, the dashboard will suppress tactical BUY signals rather than use stale or fabricated values.",
 ];
 
 export const DEFAULT_SETTINGS: DashboardSettings = {
