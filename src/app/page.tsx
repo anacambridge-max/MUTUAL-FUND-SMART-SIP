@@ -1,10 +1,15 @@
 import DashboardClient from "@/components/dashboard-client";
-import { getOrBuildInitialSnapshot } from "@/lib/dashboard-service";
+import { buildFallbackSnapshot, generateDashboardSnapshot } from "@/lib/dashboard-service";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const initialSnapshot = await getOrBuildInitialSnapshot();
+  let initialSnapshot;
+  try {
+    initialSnapshot = await generateDashboardSnapshot();
+  } catch {
+    initialSnapshot = buildFallbackSnapshot();
+  }
 
   return <DashboardClient initialSnapshot={initialSnapshot} />;
 }
