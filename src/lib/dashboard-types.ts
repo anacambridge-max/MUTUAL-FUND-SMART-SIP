@@ -19,12 +19,11 @@ export type FundTechnical = {
   sma200: number | null; drawdown52W: number | null; drawdownAllTime: number | null;
   relStrengthVsNifty20D: number | null; relStrengthVsNifty50D: number | null;
 };
-
 export type ScoredFund = {
   id: string; name: string; proxyKey: string; proxyLabel: string; proxyMovePct: number | null;
   strategicScore: number; opportunityScore: number; finalScore: number; trend: TrendState;
   classification: FundClassification; actionTag: FundActionTag; reason: string; expectedNavImpactNote: string;
-  executionSignal: string; confidence: "HIGH" | "MEDIUM" | "LOW"; technical: FundTechnical;
+  executionSignal: string; confidence: string; technical: FundTechnical;
 };
 export type Regime = { badge: "RISK_ON" | "RISK_OFF"; label: string; strategyNote: string; breadthPositivePct: number };
 export type DashboardSettings = {
