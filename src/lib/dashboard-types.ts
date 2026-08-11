@@ -13,7 +13,7 @@ export type FundMapping = { id: string; name: string; proxyKey: string; amfiCode
 
 export type FundTechnical = {
   latestNav: number | null; navDate: string | null; estimatedNav: number | null; estimatedNavChangePct: number | null;
-  navOpportunityScore: number; navOpportunityLabel: "HIGH" | "MEDIUM" | "LOW" | "NONE";
+  navOpportunityScore: number; navOpportunityLabel: string;
   return1M: number | null; return3M: number | null; return6M: number | null; momentum10D: number | null;
   momentum20D: number | null; momentum50D: number | null; sma20: number | null; sma50: number | null; sma100: number | null;
   sma200: number | null; drawdown52W: number | null; drawdownAllTime: number | null;
