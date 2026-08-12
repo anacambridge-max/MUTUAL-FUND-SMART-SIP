@@ -14,16 +14,5 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npm install
-      - name: Apply opportunity engine fix
-        run: >-
-          python -c "from pathlib import Path; p=Path('src/lib/dashboard-service.ts'); s=p.read_text(); s=s.replace('move <= -1.5 ? \"STRUCTURAL_BREAKDOWN\"','move <= -2.5 ? \"STRUCTURAL_BREAKDOWN\"',1); s=s.replace('const finalScore = Math.round((strategic * runtimeSettings.strategicWeight / 100 + opportunity * runtimeSettings.opportunityWeight / 100) * 10) / 10;','const finalScore = Math.round((strategic * runtimeSettings.strategicWeight / 100 + opportunity * runtimeSettings.opportunityWeight / 100 + (move !== null && move < -0.25 ? Math.min(25, Math.max(0, (-move) * 12)) : 0)) * 10) / 10;',1); p.write_text(s)"
+      - run: npm ci
       - run: npm run typecheck
-      - name: Commit engine fix
-        run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git rm -f .github/workflows/fix-opportunity-engine.yml 2>/dev/null || true
-          git add src/lib/dashboard-service.ts .github/workflows/fix-opportunity-engine.yml
-          git commit -m 'fix: rank sector corrections as MF opportunities' || exit 0
-          git push
