@@ -1,4 +1,4 @@
-import DashboardClient from "@/components/dashboard-client";
+import PremiumTerminal from "@/components/premium-terminal";
 import { buildFallbackSnapshot, generateDashboardSnapshot } from "@/lib/dashboard-service";
 
 export const dynamic = "force-dynamic";
@@ -11,5 +11,5 @@ export default async function HomePage() {
     initialSnapshot = buildFallbackSnapshot();
   }
 
-  return <DashboardClient initialSnapshot={initialSnapshot} />;
+  return <PremiumTerminal initialSnapshot={initialSnapshot} />;
 }
