@@ -1,4 +1,4 @@
-name: Fix Opportunity Engine
+name: One-time Dashboard Refactor
 
 on:
   push:
@@ -8,56 +8,144 @@ permissions:
   contents: write
 
 jobs:
-  fix:
+  refactor:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Apply opportunity-engine fix
+      - uses: actions/checkout@v4
+      - name: Refactor scoring and opportunity table
         run: |
           python - <<'PY'
           from pathlib import Path
+          import re
 
-          path = Path('src/lib/dashboard-service.ts')
-          text = path.read_text()
+          p = Path('src/lib/dashboard-service.ts')
+          s = p.read_text()
 
-          old_classification = '''const classification: FundClassification = !usable ? "NEUTRAL" : move <= -1.5 ? "STRUCTURAL_BREAKDOWN" : move < -0.25 ? "HEALTHY_CORRECTION" : "NEUTRAL";'''
-          new_classification = '''const classification: FundClassification = !usable ? "NEUTRAL" : move <= -2.5 ? "STRUCTURAL_BREAKDOWN" : move < -0.25 ? "HEALTHY_CORRECTION" : "NEUTRAL";'''
-          if old_classification not in text:
-              raise SystemExit('classification pattern not found')
-          text = text.replace(old_classification, new_classification, 1)
+          start = s.index('function sensitivityFor(')
+          end = s.index('\nexport function getOrCreateSettings', start)
+          replacement = r'''function sensitivityFor(fund: FundMapping): number {
+  // Proxy sensitivity is derived from the mapped market universe, not from a fund id.
+  // It is intentionally conservative because a proxy is not the fund's actual portfolio.
+  if (["NIFTY_50", "NIFTY_NEXT_50", "SENSEX"].includes(fund.proxyKey)) return 0.85;
+  if (["MIDCAP_150", "SMALLCAP_250", "LARGEMIDCAP_250"].includes(fund.proxyKey)) return 0.88;
+  if (["NIFTY_IT", "NIFTY_PHARMA", "NIFTY_FIN_SERVICE", "BANK_NIFTY", "NIFTY_AUTO", "NIFTY_FMCG", "NIFTY_METAL", "NIFTY_REALTY", "NIFTY_ENERGY", "NIFTY_PSU_BANK", "NIFTY_INFRA", "NIFTY_SERVICES"].includes(fund.proxyKey)) return 0.82;
+  return 0.75;
+}
 
-          old_score = '''const finalScore = Math.round((strategic * runtimeSettings.strategicWeight / 100 + opportunity * runtimeSettings.opportunityWeight / 100) * 10) / 10;'''
-          new_score = '''const weaknessPriority = move !== null && move < -0.25
-      ? Math.min(25, Math.max(0, (-move) * 12))
+function clamp(v: number, lo = 0, hi = 100): number { return Math.max(lo, Math.min(hi, v)); }
+
+function correctionHealth(proxy: IndexQuote | undefined): number {
+  if (!proxy) return 0;
+  const oneMonth = proxy.oneMonthPct;
+  const threeMonth = proxy.threeMonthPct;
+  // A one-day fall is an opportunity only when the medium-term structure is not already broken.
+  if (oneMonth !== null && threeMonth !== null) {
+    if (oneMonth >= 0 && threeMonth >= 0) return 95;
+    if (oneMonth > -3 && threeMonth > -6) return 82;
+    if (oneMonth > -6 && threeMonth > -10) return 62;
+    return 25;
+  }
+  if (oneMonth !== null) return oneMonth >= 0 ? 88 : oneMonth > -5 ? 65 : 30;
+  return 55;
+}
+
+function scoreFunds(indices: IndexQuote[], funds: FundMapping[], navs: Map<string, NavRow>): ScoredFund[] {
+  const byKey = new Map(indices.map((i) => [i.key, i]));
+  const nifty = byKey.get("NIFTY_50")?.changePct ?? null;
+  return funds.map((fund) => {
+    const definition = runtimeSettings.proxyDefinitions.find((p) => p.key === fund.proxyKey);
+    const proxy = byKey.get(definition?.indexKey ?? fund.proxyKey);
+    const move = proxy?.changePct ?? null;
+    const nav = navs.get(fund.id);
+    const usable = move !== null && nav !== undefined;
+    const sensitivity = sensitivityFor(fund);
+    const impact = usable ? move * sensitivity : null;
+    const estimatedNav = usable ? nav!.nav * (1 + impact! / 100) : null;
+    const relative = move !== null && nifty !== null ? move - nifty : null;
+    const health = correctionHealth(proxy);
+
+    // Opportunity is intentionally dominated by today's validated weakness.
+    // This guarantees that the fund linked to the weakest relevant sector rises,
+    // while medium-term weakness prevents a broken trend from being labelled a dip.
+    const dailyWeakness = move === null ? 0 : clamp(-move * 24, 0, 100);
+    const relativeWeakness = relative === null ? 50 : clamp(50 - relative * 18);
+    const opportunity = move === null ? 0 : Math.round((dailyWeakness * 0.55 + relativeWeakness * 0.25 + health * 0.20) * 10) / 10;
+    const strategicBase = proxy?.oneMonthPct ?? 0;
+    const strategic = Math.round(clamp(50 + strategicBase * 2.0 + (proxy?.threeMonthPct ?? 0) * 0.45, 20, 90) * 10) / 10;
+
+    // Structural breakdown requires confirmation across timeframes, not just a single bad day.
+    const structural = usable && move <= -2.5 && ((proxy?.oneMonthPct !== null && proxy?.oneMonthPct !== undefined && proxy.oneMonthPct <= -6) || (proxy?.threeMonthPct !== null && proxy?.threeMonthPct !== undefined && proxy.threeMonthPct <= -10));
+    const classification: FundClassification = !usable ? "NEUTRAL" : structural ? "STRUCTURAL_BREAKDOWN" : move < -0.25 ? "HEALTHY_CORRECTION" : "NEUTRAL";
+
+    const navScore = usable && move < 0
+      ? Math.round(clamp(dailyWeakness * 0.60 + relativeWeakness * 0.20 + health * 0.20))
       : 0;
-    const finalScore = Math.round((strategic * runtimeSettings.strategicWeight / 100 + opportunity * runtimeSettings.opportunityWeight / 100 + weaknessPriority) * 10) / 10;'''
-          if old_score not in text:
-              raise SystemExit('score pattern not found')
-          text = text.replace(old_score, new_score, 1)
+    const label = navScore >= 70 ? "HIGH" : navScore >= 48 ? "MEDIUM" : navScore > 0 ? "LOW" : "NONE";
 
-          old_action = '''const actionTag: FundActionTag = !usable ? "WAIT" : classification === "STRUCTURAL_BREAKDOWN" ? "AVOID TODAY" : finalScore >= 60 ? "BUY ON DIP" : finalScore >= 48 ? "SIP" : "WAIT";'''
-          new_action = '''const actionTag: FundActionTag = !usable ? "WAIT" : classification === "STRUCTURAL_BREAKDOWN" ? "AVOID TODAY" : finalScore >= 60 ? "BUY ON DIP" : finalScore >= 48 ? "SIP" : "WAIT";'''
-          if old_action not in text:
-              raise SystemExit('action pattern not found')
-          text = text.replace(old_action, new_action, 1)
+    const finalScore = Math.round((opportunity * 0.65 + strategic * 0.35) * 10) / 10;
+    const actionTag: FundActionTag = !usable
+      ? "WAIT"
+      : structural
+        ? "AVOID TODAY"
+        : finalScore >= 65 && move <= -0.50
+          ? "BUY ON DIP"
+          : finalScore >= 45 && move < 0
+            ? "SIP"
+            : "WAIT";
 
-          path.write_text(text)
+    const clock = executionWindow();
+    const executionSignal = !usable
+      ? "WAIT — LIVE MARKET/NAV DATA NOT VERIFIED"
+      : structural
+        ? "AVOID — MULTI-TIMEFRAME WEAKNESS CONFIRMED"
+        : move < -0.25
+          ? clock.open ? "ELIGIBLE WINDOW: BUY BEFORE 3 PM, SUBJECT TO FUNDS REALISATION" : "NEXT SESSION: RECHECK WEAKNESS BEFORE BUYING"
+          : move >= 0.5 ? "AVOID CHASING STRENGTH" : "WAIT FOR A BETTER ENTRY";
+
+    const confidence = !usable ? "UNVERIFIED" : (proxy?.oneMonthPct !== null && proxy?.oneMonthPct !== undefined) ? (Math.abs(move) >= 1 ? "HIGH" : "MEDIUM") : "LOW";
+    const reason = move === null
+      ? `${definition?.label ?? fund.proxyKey} market data is not currently verified.`
+      : `${definition?.label ?? fund.proxyKey} moved ${move >= 0 ? "+" : ""}${move.toFixed(2)}% today; relative weakness vs NIFTY 50 is ${relative === null ? "unverified" : `${relative >= 0 ? "+" : ""}${relative.toFixed(2)}%`}. Medium-term correction health: ${health.toFixed(0)}/100.`;
+
+    return {
+      id: fund.id, name: fund.name, proxyKey: fund.proxyKey, proxyLabel: definition?.label ?? fund.proxyKey, proxyMovePct: move,
+      strategicScore: strategic, opportunityScore: opportunity, finalScore, trend: proxy?.trend ?? "SIDEWAYS", classification, actionTag,
+      executionSignal, confidence, reason,
+      expectedNavImpactNote: nav ? `Latest published NAV ₹${nav.nav.toFixed(4)} • ${nav.date} • modelled closing NAV ₹${estimatedNav?.toFixed(4) ?? "—"}.` : "NAV unavailable from AMFI; tactical signal suppressed.",
+      technical: { latestNav: nav?.nav ?? null, navDate: nav?.date ?? null, estimatedNav, estimatedNavChangePct: impact, navOpportunityScore: navScore, navOpportunityLabel: label, return1M: proxy?.oneMonthPct ?? null, return3M: proxy?.threeMonthPct ?? null, return6M: null, momentum10D: move, momentum20D: null, momentum50D: null, sma20: null, sma50: null, sma100: null, sma200: null, drawdown52W: null, drawdownAllTime: null, relStrengthVsNifty20D: relative, relStrengthVsNifty50D: relative },
+    };
+  }).sort((a, b) => b.finalScore - a.finalScore);
+}
+'''
+          s = s[:start] + replacement + s[end:]
+
+          old_lower = 'const lowerNav = scored.filter((f) => f.technical.navOpportunityScore > 0 && f.actionTag !== "WAIT" && f.actionTag !== "AVOID TODAY").sort((a, b) => b.technical.navOpportunityScore - a.technical.navOpportunityScore);'
+          new_lower = 'const lowerNav = scored.filter((f) => f.technical.navOpportunityScore >= 45 && (f.actionTag === "BUY ON DIP" || f.actionTag === "SIP")).sort((a, b) => b.technical.navOpportunityScore - a.technical.navOpportunityScore);'
+          if old_lower not in s: raise SystemExit("lower NAV filter pattern not found")
+          s = s.replace(old_lower, new_lower, 1)
+          p.write_text(s)
+
+          p = Path('src/components/dashboard-client.tsx')
+          s = p.read_text()
+          s = s.replace('{snapshot.allFunds.map(f=><tr key={f.id}><td><strong>{f.name}</strong><small>{f.proxyLabel}</small></td><td className="nav">{money(f.technical.latestNav)}</td><td className="nav-drop-cell">{money(f.technical.estimatedNav)}</td><td className={moveClass(f.technical.estimatedNavChangePct)}>{pct(f.technical.estimatedNavChangePct)}</td><td className={moveClass(f.proxyMovePct)}>{pct(f.proxyMovePct)}</td><td><span className={`opportunity-mini ${f.technical.navOpportunityLabel.toLowerCase()}`}>{f.technical.navOpportunityScore}/100</span></td><td><span className={`decision ${actionClass(f.actionTag)}`}>{f.actionTag}</span></td></tr>)}','{snapshot.lowerNavOpportunities.map(f=><tr key={f.id}><td><strong>{f.name}</strong><small>{f.proxyLabel}</small></td><td className="nav">{money(f.technical.latestNav)}</td><td className="nav-drop-cell">{money(f.technical.estimatedNav)}</td><td className={moveClass(f.technical.estimatedNavChangePct)}>{pct(f.technical.estimatedNavChangePct)}</td><td className={moveClass(f.proxyMovePct)}>{pct(f.proxyMovePct)}</td><td><span className={`opportunity-mini ${f.technical.navOpportunityLabel.toLowerCase()}`}>{f.technical.navOpportunityScore}/100</span></td><td><span className={`decision ${actionClass(f.actionTag)}`}>{f.actionTag}</span></td></tr>)}',1)
+          s = s.replace('<span className="section-note">Ranked by validated NAV opportunity score</span>','<span className="section-note">Weakness + relative strength + trend health</span>',1)
+          s = s.replace('Lower-NAV Opportunity Engine</h2>','Lower-NAV Opportunity Engine V3</h2>',1)
+          s = s.replace('<div><b>03 · Detect weakness</b><span>Find validated sectors/indices falling in the latest completed session or live session.</span></div>','<div><b>03 · Rank weakness</b><span>Today\'s decline is weighted first, then relative weakness versus NIFTY 50.</span></div>',1)
+          s = s.replace('<div><b>04 · Estimate impact</b><span>Apply a conservative proxy sensitivity to model a closing NAV.</span></div>','<div><b>04 · Confirm trend health</b><span>Use 1M/3M performance to separate a healthy dip from a structural breakdown.</span></div><div><b>05 · Estimate impact</b><span>Apply a conservative proxy sensitivity to model the closing NAV.</span></div>',1)
+          s = s.replace('<div><b>05 · Verify NAV</b>','<div><b>06 · Verify NAV</b>',1).replace('<div><b>06 · Execute correctly</b>','<div><b>07 · Execute correctly</b>',1)
+          p.write_text(s)
           PY
-
-      - name: Validate TypeScript syntax
+      - name: Validate
         run: |
           npm ci
           npx tsc --noEmit
-
-      - name: Commit fix and remove temporary workflow
+      - name: Commit and remove one-time workflow
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add src/lib/dashboard-service.ts .github/workflows/fix-opportunity-engine.yml
-          git commit -m 'fix: rank sector corrections as MF opportunities' || exit 0
+          git add src/lib/dashboard-service.ts src/components/dashboard-client.tsx .github/workflows/fix-opportunity-engine.yml
+          git commit -m 'feat: rebuild MF opportunity engine around market logic'
           git rm .github/workflows/fix-opportunity-engine.yml
-          git commit -m 'chore: remove temporary fix workflow'
+          git commit -m 'chore: remove one-time dashboard refactor workflow'
           git push
