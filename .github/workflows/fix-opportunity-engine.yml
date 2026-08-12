@@ -1,0 +1,63 @@
+name: Fix Opportunity Engine
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Apply opportunity-engine fix
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('src/lib/dashboard-service.ts')
+          text = path.read_text()
+
+          old_classification = '''const classification: FundClassification = !usable ? "NEUTRAL" : move <= -1.5 ? "STRUCTURAL_BREAKDOWN" : move < -0.25 ? "HEALTHY_CORRECTION" : "NEUTRAL";'''
+          new_classification = '''const classification: FundClassification = !usable ? "NEUTRAL" : move <= -2.5 ? "STRUCTURAL_BREAKDOWN" : move < -0.25 ? "HEALTHY_CORRECTION" : "NEUTRAL";'''
+          if old_classification not in text:
+              raise SystemExit('classification pattern not found')
+          text = text.replace(old_classification, new_classification, 1)
+
+          old_score = '''const finalScore = Math.round((strategic * runtimeSettings.strategicWeight / 100 + opportunity * runtimeSettings.opportunityWeight / 100) * 10) / 10;'''
+          new_score = '''const weaknessPriority = move !== null && move < -0.25
+      ? Math.min(25, Math.max(0, (-move) * 12))
+      : 0;
+    const finalScore = Math.round((strategic * runtimeSettings.strategicWeight / 100 + opportunity * runtimeSettings.opportunityWeight / 100 + weaknessPriority) * 10) / 10;'''
+          if old_score not in text:
+              raise SystemExit('score pattern not found')
+          text = text.replace(old_score, new_score, 1)
+
+          old_action = '''const actionTag: FundActionTag = !usable ? "WAIT" : classification === "STRUCTURAL_BREAKDOWN" ? "AVOID TODAY" : finalScore >= 60 ? "BUY ON DIP" : finalScore >= 48 ? "SIP" : "WAIT";'''
+          new_action = '''const actionTag: FundActionTag = !usable ? "WAIT" : classification === "STRUCTURAL_BREAKDOWN" ? "AVOID TODAY" : finalScore >= 60 ? "BUY ON DIP" : finalScore >= 48 ? "SIP" : "WAIT";'''
+          if old_action not in text:
+              raise SystemExit('action pattern not found')
+          text = text.replace(old_action, new_action, 1)
+
+          path.write_text(text)
+          PY
+
+      - name: Validate TypeScript syntax
+        run: |
+          npm ci
+          npx tsc --noEmit
+
+      - name: Commit fix and remove temporary workflow
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/lib/dashboard-service.ts .github/workflows/fix-opportunity-engine.yml
+          git commit -m 'fix: rank sector corrections as MF opportunities' || exit 0
+          git rm .github/workflows/fix-opportunity-engine.yml
+          git commit -m 'chore: remove temporary fix workflow'
+          git push
